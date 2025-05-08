@@ -1,9 +1,12 @@
+-- CreateExtension
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 -- CreateTable
 CREATE TABLE "Product" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" VARCHAR(60) NOT NULL,
     "image" TEXT,
-    "Description" TEXT,
+    "description" TEXT,
     "quantity" INTEGER NOT NULL DEFAULT 1,
     "price" DECIMAL(10,2) NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -14,7 +17,7 @@ CREATE TABLE "Product" (
 
 -- CreateTable
 CREATE TABLE "Categories" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" VARCHAR(30) NOT NULL,
 
     CONSTRAINT "Categories_pkey" PRIMARY KEY ("id")
@@ -22,8 +25,8 @@ CREATE TABLE "Categories" (
 
 -- CreateTable
 CREATE TABLE "ProductCategories" (
-    "product_id" TEXT NOT NULL,
-    "category_id" TEXT NOT NULL,
+    "product_id" UUID NOT NULL,
+    "category_id" UUID NOT NULL,
 
     CONSTRAINT "ProductCategories_pkey" PRIMARY KEY ("product_id","category_id")
 );
