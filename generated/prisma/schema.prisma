@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                String              @id @default(uuid())
+  name              String              @db.VarChar(60)
+  image             String?
+  Description       String?
+  quantity          Int                 @default(1)
+  price             Decimal             @db.Decimal(10, 2)
+  created_at        DateTime            @default(now())
+  updated_at        DateTime            @updatedAt
+  ProductCategories ProductCategories[]
+}
+
+model Categories {
+  id                String              @id @default(uuid())
+  name              String              @unique @db.VarChar(30)
+  ProductCategories ProductCategories[]
+}
+
+model ProductCategories {
+  product_id  String
+  category_id String
+  product     Product    @relation(fields: [product_id], references: [id])
+  category    Categories @relation(fields: [category_id], references: [id])
+
+  @@id([product_id, category_id])
+}
+
+// todo: add more table and relation
