@@ -55,6 +55,8 @@ Point `DATABASE_URL` in `.env` at your running Postgres instance.
 
 ## Prisma Setup & Migrations
 
+skip step 1 & 2
+
 1. **Initialize Prisma** (creates `prisma/schema.prisma` and stub `.env`):
 
    ```bash
@@ -63,7 +65,7 @@ Point `DATABASE_URL` in `.env` at your running Postgres instance.
    pnpx prisma init
    ```
 
-2. **Review/Edit** `prisma/schema.prisma` (see “Schema” below).
+2. **Review/Edit** `prisma/schema.prisma`
 
 3. **Run Migration**:
 
