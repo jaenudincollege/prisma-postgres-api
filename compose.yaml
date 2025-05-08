@@ -1,0 +1,11 @@
+services:
+  postgres:
+    container_name: postgres-container
+    image: postgres:16.8-alpine3.20
+    environment:
+      - POSTGRES_USER=jay
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=prisma 
+    ports:
+      - "4321:5432"
+    restart: always
