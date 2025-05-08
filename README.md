@@ -1,121 +1,127 @@
 # prisma-postgres-api
 
-# Product Catalog Schema
+A Node.js API using Prisma Client and PostgreSQL
 
 ---
 
-## Table: `products`
+## Prerequisites
 
-Stores your core product records.
-
-| Column      | Type              | Constraints                     | Description                |
-| ----------- | ----------------- | ------------------------------- | -------------------------- |
-| id          | BIGINT / UUID     | PK, auto-increment / generated  | Unique product identifier  |
-| name        | VARCHAR(255)      | NOT NULL                        | Product name               |
-| slug        | VARCHAR(255)      | UNIQUE, NOT NULL                | URL-friendly unique key    |
-| description | TEXT              |                                 | Full description           |
-| sku         | VARCHAR(100)      | UNIQUE, NOT NULL                | Stock-keeping unit         |
-| price       | DECIMAL(10,2)     | NOT NULL, DEFAULT 0.00          | Base price                 |
-| cost        | DECIMAL(10,2)     | DEFAULT NULL                    | (Optional) Cost price      |
-| status      | ENUM              | ('draft', 'active', 'archived') | Lifecycle status           |
-| supplier_id | BIGINT            | FK → suppliers.id               | (Optional) Source supplier |
-| created_at  | TIMESTAMP WITH TZ | NOT NULL, DEFAULT now()         | Creation timestamp         |
-| updated_at  | TIMESTAMP WITH TZ | NOT NULL, DEFAULT now()         | Last update timestamp      |
+- **Node.js** ≥16
+- **pnpm**, **npm**, or **yarn**
+- **PostgreSQL** (local, Docker, or remote)
+- (Optional) **Docker & Docker Compose**
 
 ---
 
-## Table: `categories`
+## Getting Started
 
-Categorize products into hierarchical buckets.
+### 1. Clone & Install
 
-| Column    | Type         | Constraints                  | Description                    |
-| --------- | ------------ | ---------------------------- | ------------------------------ |
-| id        | BIGINT       | PK, auto-increment           | Unique category ID             |
-| name      | VARCHAR(100) | NOT NULL, UNIQUE             | Category name                  |
-| slug      | VARCHAR(100) | NOT NULL, UNIQUE             | URL-friendly key               |
-| parent_id | BIGINT       | FK → categories.id, NULLABLE | For nesting (NULL = top-level) |
+```bash
+git clone https://github.com/jaenudincollege/prisma-postgres-api.git
+cd prisma-postgres-api
 
----
+# install dependencies (choose one)
+pnpm install
+# or
+npm install
+# or
+yarn install
+```
 
-## Table: `product_categories`
+### 2. Configure Database
 
-Many-to-many pivot between products and categories.
+Create a `.env` at project root:
 
-| Column      | Type   | Constraints                        |
-| ----------- | ------ | ---------------------------------- |
-| product_id  | BIGINT | PK (composite), FK → products.id   |
-| category_id | BIGINT | PK (composite), FK → categories.id |
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+```
 
----
+- Replace `USER`, `PASSWORD`, `HOST`, `PORT`,`DATABASE`., with your values.
 
-## Table: `tags`
+#### Option A: Docker-Compose
 
-Free-form tags.
+```bash
+docker-compose up -d
+```
 
-| Column | Type        | Constraints        |
-| ------ | ----------- | ------------------ |
-| id     | BIGINT      | PK, auto-increment |
-| name   | VARCHAR(50) | UNIQUE, NOT NULL   |
+Then set `DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mydb"`.
 
----
+#### Option B: Existing Postgres
 
-## Table: `product_tags`
-
-Many-to-many pivot for tags.
-
-| Column     | Type   | Constraints                    |
-| ---------- | ------ | ------------------------------ |
-| product_id | BIGINT | PK composite, FK → products.id |
-| tag_id     | BIGINT | PK composite, FK → tags.id     |
+Point `DATABASE_URL` in `.env` at your running Postgres instance.
 
 ---
 
-## Table: `product_images`
+## Prisma Setup & Migrations
 
-Multiple images per product.
+1. **Initialize Prisma** (creates `prisma/schema.prisma` and stub `.env`):
 
-| Column     | Type          | Constraints                | Description            |
-| ---------- | ------------- | -------------------------- | ---------------------- |
-| id         | BIGINT        | PK, auto-increment         |                        |
-| product_id | BIGINT        | FK → products.id, NOT NULL |                        |
-| url        | VARCHAR(2048) | NOT NULL                   | Image URL              |
-| alt_text   | VARCHAR(255)  |                            | Accessibility caption  |
-| sort_order | INT           | DEFAULT 0                  | Image ordering         |
-| is_primary | BOOLEAN       | DEFAULT FALSE              | Marks the “main” image |
+   ```bash
+   npx prisma init
+   # or
+   pnpx prisma init
+   ```
 
----
+2. **Review/Edit** `prisma/schema.prisma` (see “Schema” below).
 
-## Table: `suppliers` _(optional)_
+3. **Run Migration**:
 
-Who you source products from.
+   ```bash
+   npx prisma migrate dev --name init
+   # or
+   pnpx prisma migrate dev --name init
+   ```
 
-| Column        | Type              | Constraints             | Description   |
-| ------------- | ----------------- | ----------------------- | ------------- |
-| id            | BIGINT            | PK, auto-increment      |               |
-| name          | VARCHAR(255)      | NOT NULL, UNIQUE        | Supplier name |
-| contact_email | VARCHAR(255)      |                         |               |
-| phone         | VARCHAR(50)       |                         |               |
-| created_at    | TIMESTAMP WITH TZ | NOT NULL, DEFAULT now() |               |
+This will create the tables and generate the client in `../generated/prisma`.
 
 ---
 
-## Table: `inventory` _(optional)_
+## Running the App
 
-Track stock levels per warehouse.
+```bash
+# Start dev server
+npm run dev
+# or
+pnpm dev
+# or
+yarn dev
+```
 
-| Column           | Type   | Constraints                      | Description           |
-| ---------------- | ------ | -------------------------------- | --------------------- |
-| product_id       | BIGINT | PK composite, FK → products.id   |                       |
-| warehouse_id     | BIGINT | PK composite, FK → warehouses.id |                       |
-| quantity_on_hand | INT    | NOT NULL, DEFAULT 0              | Current stock         |
-| reorder_level    | INT    | DEFAULT 0                        | Restock trigger level |
+By default: `http://localhost:3000`.
 
 ---
 
-## Table: `warehouses`
+## API Endpoint
 
-| Column   | Type         | Constraints        | Description       |
-| -------- | ------------ | ------------------ | ----------------- |
-| id       | BIGINT       | PK, auto-increment |                   |
-| name     | VARCHAR(100) | NOT NULL           |                   |
-| location | VARCHAR(255) |                    | e.g. "Jakarta HQ" |
+### **`GET /api/products`**
+
+- Returns all products with their categories.
+
+**Response Schema:**
+
+```json
+[
+  {
+    "id": "uuid",
+    "name": "Product Name",
+    "image": "string|null",
+    "description": "string|null",
+    "quantity": number,
+    "price": "decimal string",
+    "created_at": "ISO datetime",
+    "updated_at": "ISO datetime",
+    "categories": [
+      { "id": "uuid", "name": "Category Name" }
+    ]
+  },
+  …
+]
+```
+
+---
+
+## Further Resources
+
+- Prisma CRUD: [https://www.prisma.io/docs/orm/prisma-client/queries/crud](https://www.prisma.io/docs/orm/prisma-client/queries/crud)
+- Postgres UUIDs (pgcrypto): [https://www.postgresql.org/docs/current/pgcrypto.html](https://www.postgresql.org/docs/current/pgcrypto.html)
