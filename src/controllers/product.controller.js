@@ -1,10 +1,14 @@
-import { PrismaClient } from "../../generated/prisma/client.js";
-
-const prisma = new PrismaClient();
+import prisma from "../utils/prisma.js";
 
 export const getProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany();
+
+    if (products.length < 1) {
+      return res.status(404).json({
+        message: "No product available, add first",
+      });
+    }
 
     return res.status(200).json({
       status: "success",
